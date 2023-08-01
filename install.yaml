@@ -1,4 +1,4 @@
-name: buggregator
+name: ddev-buggregator
 
 project_files:
 - docker-compose.buggregator.yaml
