@@ -1,0 +1,20 @@
+#ddev-generated
+# Buggregator Server
+services:
+  buggregator:
+    container_name: ddev-${DDEV_SITENAME}-buggregator
+    hostname: ${DDEV_SITENAME}-buggregator
+    image: ghcr.io/buggregator/server:latest
+    expose:
+      - "8000"
+      - "1025"
+      - "9912"
+      - "9913"
+    environment:
+      - VIRTUAL_HOST=$DDEV_HOSTNAME
+      - HTTPS_EXPOSE=8000:8000,1025:1025,9912:9912,9913:9913
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.approot: $DDEV_APPROOT
+    volumes:
+      - ".:/mnt/ddev_config"
