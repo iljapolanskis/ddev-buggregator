@@ -37,5 +37,17 @@ $log->pushHandler($handler);
 
 // Send records to the Buggregator
 $log->warning(print_r($handler, true));
+
+
+
+======== Inside Magento2 ======
+// Create a log channel
+$log = new \Monolog\Logger('buggregator'); // Any name you want
+$handler = new \Monolog\Handler\SocketHandler('buggregator:9913'); // The name of the service and the port, by default 9913 for monolog
+$handler->setFormatter(new \Monolog\Formatter\JsonFormatter());
+$log->pushHandler($handler);
+
+// Send records to the Buggregator
+$log->warning(print_r($handler, true));
 ```
 
