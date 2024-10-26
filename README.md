@@ -9,7 +9,16 @@
 
 This repository implements [Buggregator](https://github.com/buggregator/server) as a DDEV add-on service.
 
-Can be installed from the command line using the 
+Can be installed from the command line.
+
+For DDEV v1.23.5 or above run
+
+```sh
+ddev add-on get iljapolanskis/ddev-buggregator
+```
+
+For earlier versions of DDEV run
+
 ```sh
 ddev get iljapolanskis/ddev-buggregator
 ```
