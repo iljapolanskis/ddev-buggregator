@@ -1,4 +1,8 @@
 name: ddev-buggregator
 
 project_files:
-- docker-compose.buggregator.yaml
+  - docker-compose.buggregator.yaml
+  - xhprof/xhprof_prepend.php
+
+# needed for xhprof/xhprof_prepend.php
+ddev_version_constraint: '>= v1.23.2'
