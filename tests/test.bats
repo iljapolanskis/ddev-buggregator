@@ -4,7 +4,7 @@ setup() {
   export TESTDIR=~/tmp/test-buggregator
   mkdir -p $TESTDIR
   export PROJNAME=test-buggregator
-  export DDEV_NON_INTERACTIVE=true
+  export DDEV_NONINTERACTIVE=true
   ddev delete -Oy ${PROJNAME} >/dev/null 2>&1 || true
   cd "${TESTDIR}"
   ddev config --project-name=${PROJNAME}
@@ -13,8 +13,7 @@ setup() {
 
 health_checks() {
   # Do something useful here that verifies the add-on
-  # ddev exec "curl -s elasticsearch:9200" | grep "${PROJNAME}-elasticsearch"
-  ddev exec "curl -s https://localhost:443/"
+  ddev exec "curl -s http://buggregator:8000/"
 }
 
 teardown() {
@@ -27,17 +26,18 @@ teardown() {
 @test "install from directory" {
   set -eu -o pipefail
   cd ${TESTDIR}
-  echo "# ddev get ${DIR} with project ${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
-  ddev get ${DIR}
+  echo "# ddev add-on get ${DIR} with project ${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
+  ddev add-on get ${DIR}
   ddev restart
   health_checks
 }
 
+# bats test_tags=release
 @test "install from release" {
   set -eu -o pipefail
   cd ${TESTDIR} || ( printf "unable to cd to ${TESTDIR}\n" && exit 1 )
-  echo "# ddev get iljapolanskis/ddev-buggregator with project ${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
-  ddev get iljapolanskis/ddev-buggregator
+  echo "# ddev add-on get iljapolanskis/ddev-buggregator with project ${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
+  ddev add-on get iljapolanskis/ddev-buggregator
   ddev restart >/dev/null
   health_checks
 }
