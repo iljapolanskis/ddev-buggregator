@@ -1,115 +1,116 @@
-[![tests](https://github.com/iljapolanskis/ddev-buggregator/actions/workflows/tests.yml/badge.svg)](https://github.com/iljapolanskis/ddev-buggregator/actions/workflows/tests.yml)
-![Project is maintained](https://img.shields.io/maintenance/yes/2024.svg)
+[![add-on registry](https://img.shields.io/badge/DDEV-Add--on_Registry-blue)](https://addons.ddev.com)
+[![tests](https://github.com/iljapolanskis/ddev-buggregator/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/iljapolanskis/ddev-buggregator/actions/workflows/tests.yml?query=branch%3Amain)
+[![last commit](https://img.shields.io/github/last-commit/iljapolanskis/ddev-buggregator)](https://github.com/iljapolanskis/ddev-buggregator/commits)
+[![release](https://img.shields.io/github/v/release/iljapolanskis/ddev-buggregator)](https://github.com/iljapolanskis/ddev-buggregator/releases/latest)
 
-# ddev-buggregator <!-- omit in toc -->
+# DDEV Buggregator
 
-DDEV add-on for [Buggregator](https://github.com/buggregator/server) – a debugging utility that aggregates logs from various PHP tools like Monolog, Symfony VarDumper, Laravel Telescope, and more.
+## Overview
 
----
-
-## Table of Contents
-
-* [What is ddev-buggregator?](#what-is-ddev-buggregator)
-* [Installation](#installation)
-* [Usage](#usage)
-* [Example: Using with Monolog in Magento 2](#example-using-with-monolog-in-magento-2)
-* [Troubleshooting](#troubleshooting)
-
----
-
-## What is ddev-buggregator?
-
-This project integrates [Buggregator](https://github.com/buggregator/server) as a DDEV add-on service.
-It enables capturing debugging data from your PHP applications directly in your local development environment.
-
----
+This add-on integrates [Buggregator](https://github.com/buggregator/server) into your [DDEV](https://ddev.com/) project. Buggregator is a powerful debugging server that helps with application debugging and monitoring by collecting logs, profiling data, and other debugging information.
 
 ## Installation
 
-### For DDEV v1.23.5 and newer
-
 ```bash
 ddev add-on get iljapolanskis/ddev-buggregator
+ddev restart
 ```
 
-### For earlier versions of DDEV
+After installation, make sure to commit the `.ddev` directory to version control.
+
+## Usage
+
+| Command | Description |
+| ------- | ----------- |
+| `ddev describe` | View service status and used ports for Buggregator |
+| `ddev logs -s buggregator` | Check Buggregator logs |
+
+### Accessing Buggregator UI
+
+Open `https://mysite.ddev.site:8000` in your browser to access the Buggregator web interface.
+
+Additional information on using Buggregator can be found in the [Buggregator documentation](https://github.com/buggregator/server#configuration).
+
+## Configuration
+
+You can customize the Buggregator service by setting environment variables in your `.ddev/.env` file:
 
 ```bash
-ddev get iljapolanskis/ddev-buggregator
+# Buggregator image version
+BUGGREGATOR_IMAGE=ghcr.io/buggregator/server:latest
+
+# Port configurations
+BUGGREGATOR_HTTP_PORT=8000
+BUGGREGATOR_SMTP_PORT=1025
+BUGGREGATOR_VAR_DUMPER_PORT=9912
+BUGGREGATOR_MONOLOG_PORT=9913
+BUGGREGATOR_SENTRY_PORT=9511
+BUGGREGATOR_RAY_PORT=23517
 ```
 
-After installation, restart DDEV to ensure the Buggregator service is up and running:
+After making changes, restart DDEV:
 
 ```bash
 ddev restart
 ```
 
----
+## Configuration Options
 
-## Usage
+| Variable | Default | Description |
+| -------- | ------- | ----------- |
+| `BUGGREGATOR_IMAGE` | `ghcr.io/buggregator/server:latest` | Docker image version to use |
+| `BUGGREGATOR_HTTP_PORT` | `8000` | HTTP port for web interface |
+| `BUGGREGATOR_SMTP_PORT` | `1025` | SMTP port for email debugging |
+| `BUGGREGATOR_VAR_DUMPER_PORT` | `9912` | Port for Symfony VarDumper |
+| `BUGGREGATOR_MONOLOG_PORT` | `9913` | Port for Monolog handler |
+| `BUGGREGATOR_SENTRY_PORT` | `9511` | Port for Sentry integration |
+| `BUGGREGATOR_RAY_PORT` | `23517` | Port for Ray debugging tool |
 
-Once installed and running, Buggregator is available at:
+## PHP Usage Example
 
+Here's an example of how to send logs to Buggregator from within your PHP application:
+
+First, install the required PHP library:
+
+```bash
+composer require monolog/monolog
 ```
-http://<your-project>.ddev.site:8000
-```
 
-Replace `<your-project>` with your actual DDEV project name.
-
-Refer to the [Buggregator documentation](https://github.com/buggregator/server#configuration) for more advanced configuration options.
-
----
-
-## Example: Using with Monolog in Magento 2
-
-Buggregator supports Monolog via a socket connection on port `9913`. Below is a sample script demonstrating how to send logs from Magento 2.
-
-### PHP Script Example
+Then use it in your code (playground.php file):
 
 ```php
 <?php
 
-require __DIR__ . '/../app/bootstrap.php';
+require_once 'vendor/autoload.php';
 
 use Monolog\Logger;
 use Monolog\Handler\SocketHandler;
 use Monolog\Formatter\JsonFormatter;
 
-// Create a logger instance
-$logger = new Logger('buggregator');
-$handler = new SocketHandler('buggregator:9913'); // 'buggregator' is the service name in DDEV
+// Create a log channel
+$logger = new Logger('myapp');
+
+// Create socket handler for Buggregator
+$handler = new SocketHandler('buggregator:9913');
 $handler->setFormatter(new JsonFormatter());
-
 $logger->pushHandler($handler);
 
-// Send a test warning
-$logger->warning('Hello from Monolog to Buggregator!');
+// Send different log levels to Buggregator
+$logger->info('Application started');
+$logger->warning('This is a warning message');
+$logger->error('An error occurred', ['user_id' => 123, 'action' => 'login']);
+$logger->debug('Debug information', ['query' => 'SELECT * FROM users']);
 ```
 
-### Magento 2 Integration Example
+Note: This example uses the default Buggregator service hostname (`buggregator`) which is accessible from within the DDEV environment.
 
-Place the following code inside any Magento 2 class or controller where you want to log data:
-
-```php
-$logger = new \Monolog\Logger('buggregator');
-$handler = new \Monolog\Handler\SocketHandler('buggregator:9913');
-$handler->setFormatter(new \Monolog\Formatter\JsonFormatter());
-
-$logger->pushHandler($handler);
-$logger->warning('This is a test warning from Magento 2.');
+```shell
+ddev exec php playground.php
 ```
 
-💡 **Tip**: Make sure the Buggregator container is running and that port `9913` is open internally (which it is by default in this DDEV add-on).
+## Credits
 
----
+**Contributed and maintained by [@iljapolanskis](https://github.com/iljapolanskis)**
 
-## Troubleshooting
+This add-on uses the [Buggregator Server](https://github.com/buggregator/server) Docker image as the base for the debugging service.
 
-* **Cannot connect to Buggregator:** Ensure the DDEV project is running and the Buggregator service is listed with `ddev describe`.
-* **Port conflicts:** Port 8000 may conflict with other services. You can modify the port in `.ddev/docker-compose.buggregator.yaml` if necessary.
-  
----
-
-## Contributing
-
-Feel free to open issues or PRs
